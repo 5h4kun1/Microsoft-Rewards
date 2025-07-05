@@ -14,7 +14,8 @@ Generate personalized Microsoft Rewards links with your custom terms - switch be
 
 ## 🚀 Webpage
 
-![Custom Reward Link Generator](https://5h4kun1.github.io/Microsoft-Rewards/index.html)
+[![Custom Reward Link Generator](https://github.com/5h4kun1/Microsoft-Rewards/blob/main/logo.png)](https://5h4kun1.github.io/Microsoft-Rewards/index.html)
+
 
 ## 🎯 How It Works
 

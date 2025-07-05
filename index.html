@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Reward Link Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; font-size: 2.5em; background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1em; }
+        input[type="text"], select { width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: all 0.3s ease; background: white; }
+        input[type="text"]:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .reward-option { display: flex; align-items: center; padding: 10px; }
+        .reward-option img { width: 50px; height: 34px; margin-right: 15px; border-radius: 5px; object-fit: cover; }
+        .reward-text { display: flex; flex-direction: column; }
+        .reward-name { font-weight: 600; color: #333; margin-bottom: 2px; }
+        .reward-desc { font-size: 13px; color: #666; }
+        .btn { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; margin-top: 20px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); }
+        .btn-secondary { background: linear-gradient(45deg, #28a745, #20c997); margin-top: 10px; }
+        .btn-secondary:hover { box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3); }
+        .result { margin-top: 30px; padding: 20px; background: linear-gradient(45deg, #f8f9ff, #e8f0ff); border-radius: 15px; border-left: 5px solid #667eea; display: none; }
+        .result.show { display: block; animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .generated-link { background: white; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px solid #667eea; word-break: break-all; font-family: 'Courier New', monospace; font-size: 14px; position: relative; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; background: #667eea; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .copy-btn:hover { background: #5a6fd8; }
+        .note { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 10px; margin-bottom: 20px; color: #856404; line-height: 1.6; }
+        .note strong { color: #d63031; }
+        #linkAnalysis { margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 10px; font-size: 14px; }
+        #linkAnalysis p { margin-bottom: 8px; }
+        .reward-info h3 { color: #333; margin-bottom: 5px; }
+        .reward-info p { color: #666; margin-bottom: 15px; }
+        small { color: #666; font-size: 12px; margin-top: 5px; display: block; }
+        .input-modes { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; }
+        .mode-btn.active { background: #667eea; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎁 Custom Reward Link Generator</h1>
+        
+        <div class="note">
+            <strong>Two ways to use:</strong> 
+            <br>• <strong>Manual Mode:</strong> Enter your personal term + choose reward manually
+            <br>• <strong>Link Mode:</strong> Paste an existing reward link to extract your term, then choose a new reward
+        </div>
+
+        <div class="input-modes">
+            <button type="button" class="mode-btn active" onclick="switchMode('manual')">Manual Entry</button>
+            <button type="button" class="mode-btn" onclick="switchMode('link')">From Existing Link</button>
+        </div>
+
+        <form id="linkForm">
+            <div id="manualMode">
+                <div class="form-group">
+                    <label for="userTerm">Your Personal Custom Term:</label>
+                    <input type="text" id="userTerm" placeholder="e.g., edgepredeem, ML2V0V" required>
+                    <small>This is your unique term that validates for your account</small>
+                </div>
+            </div>
+
+            <div id="linkMode" style="display: none;">
+                <div class="form-group">
+                    <label for="existingLink">Paste Your Existing Reward Link:</label>
+                    <input type="text" id="existingLink" placeholder="https://rewards.bing.com/redeem/uniquecode/?form=edgepredeem">
+                    <small>We'll extract your personal term from this link</small>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="extractFromLink()">Extract Term from Link</button>
+                <div id="extractedInfo" style="margin-top: 15px; display: none; padding: 15px; background: #e8f5e8; border-radius: 10px;">
+                    <p><strong>Extracted Term:</strong> <span id="extractedTermDisplay"></span></p>
+                    <p><strong>Current Reward:</strong> <span id="currentRewardDisplay"></span></p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="rewardType">Choose New Reward:</label>
+                <select id="rewardType" required>
+                    <option value="">Select a reward...</option>
+                    <option value="amazon" data-img="https://rewards.bing.com/rewardscdn/images/rewards/rc/large/AmazonPayIN_310x216.png">Amazon Gift Card</option>
+                    <option value="lol" data-img="https://rewards.bing.com/rewardscdn/images/rewards/rc/large/000400000359_310x216.png">League of Legends Gift Card</option>
+                    <option value="overwatch" data-img="https://rewards.bing.com/rewardscdn/images/rewards/rc/large/000400000383_v2_320x216.png">Overwatch Digital Code</option>
+                    <option value="croma" data-img="https://rewards.bing.com/rewardscdn/images/rewards/rc/large/Croma_310x216.png">₹500 Croma Gift Card</option>
+                    <option value="spotify" data-img="https://rewards.bing.com/rewardscdn/images/rewards/rc/large/Spotify_3M_rerun_310x216.png">Free Spotify Premium Subscription</option>
+
+                </select>
+                <div id="rewardPreview" style="margin-top: 15px; display: none;">
+                    <div class="reward-option">
+                        <img id="previewImg" src="" alt="Reward Preview">
+                        <div class="reward-text">
+                            <span class="reward-name" id="previewName"></span>
+                            <span class="reward-desc" id="previewDesc"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Generate Custom Link</button>
+        </form>
+
+        <div id="result" class="result">
+            <div class="reward-info">
+                <h3 id="selectedReward">Custom Reward Link</h3>
+                <p id="rewardDescription">Your personalized reward link with custom term</p>
+            </div>
+            <div class="generated-link">
+                <span id="generatedLink"></span>
+                <button class="copy-btn" onclick="copyLink()">Copy</button>
+            </div>
+            <div id="linkAnalysis">
+                <p><strong>New Reward:</strong> <span id="newRewardDisplay"></span></p>
+                <p><strong>Your Personal Term:</strong> <span id="yourTermDisplay"></span></p>
+                <p><strong>Status:</strong> <span id="statusDisplay"></span></p>
+            </div>
+            <p><strong>Instructions:</strong> Click the link above to redeem your reward with your custom term!</p>
+        </div>
+    </div>
+
+    <script>
+        const rewardData = {
+            amazon: { name: "Amazon Gift Card", code: "000885000029", description: "Shop anything on Amazon", img: "https://rewards.bing.com/rewardscdn/images/rewards/rc/large/AmazonPayIN_310x216.png" },
+            lol: { name: "League of Legends Gift Card", code: "000485000001", description: "In-game purchases for League of Legends", img: "https://rewards.bing.com/rewardscdn/images/rewards/rc/large/000400000359_310x216.png" },
+            overwatch: { name: "Overwatch Digital Code", code: "000485000005", description: "Get Overwatch digital content", img: "https://rewards.bing.com/rewardscdn/images/rewards/rc/large/000400000383_v2_320x216.png" },
+            croma: { name: "₹500 Croma Gift Card", code: "000885000017", description: "Electronics and appliances voucher", img: "https://rewards.bing.com/rewardscdn/images/rewards/rc/large/Croma_310x216.png" },
+            spotify: { name: "Free Spotify Premium Subscription", code: "000885000040", description: "Music streaming service", img: "https://rewards.bing.com/rewardscdn/images/rewards/rc/large/Spotify_3M_rerun_310x216.png" }
+        };
+        
+        let currentMode = 'manual';
+        let extractedTerm = '';
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'manual') {
+                document.getElementById('manualMode').style.display = 'block';
+                document.getElementById('linkMode').style.display = 'none';
+                document.getElementById('userTerm').required = true;
+                document.getElementById('existingLink').required = false;
+            } else {
+                document.getElementById('manualMode').style.display = 'none';
+                document.getElementById('linkMode').style.display = 'block';
+                document.getElementById('userTerm').required = false;
+                document.getElementById('existingLink').required = false;
+            }
+        }
+
+        function extractFromLink() {
+            const linkInput = document.getElementById('existingLink').value.trim();
+            
+            if (!linkInput) {
+                alert('Please enter a reward link');
+                return;
+            }
+
+            // Extract code and form parameter from the link
+            const linkMatch = linkInput.match(/https:\/\/rewards\.bing\.com\/redeem\/(\d+)\/\?form=(.+)/);
+            
+            if (!linkMatch) {
+                alert('Invalid reward link format. Please use format: https://rewards.bing.com/redeem/CODE/?form=TERM');
+                return;
+            }
+
+            const extractedCode = linkMatch[1];
+            extractedTerm = linkMatch[2];
+
+            // Find which reward this code belongs to
+            let currentReward = 'Unknown Reward';
+            for (const [key, reward] of Object.entries(rewardData)) {
+                if (reward.code === extractedCode) {
+                    currentReward = reward.name;
+                    break;
+                }
+            }
+
+            // Display extracted information
+            document.getElementById('extractedTermDisplay').textContent = extractedTerm;
+            document.getElementById('currentRewardDisplay').textContent = currentReward;
+            document.getElementById('extractedInfo').style.display = 'block';
+        }
+
+        // Preview reward on selection
+        document.getElementById('rewardType').addEventListener('change', function() {
+            const rewardType = this.value;
+            const preview = document.getElementById('rewardPreview');
+            
+            if (rewardType && rewardData[rewardType]) {
+                const reward = rewardData[rewardType];
+                document.getElementById('previewImg').src = reward.img;
+                document.getElementById('previewName').textContent = reward.name;
+                document.getElementById('previewDesc').textContent = reward.description;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        document.getElementById('linkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let userTerm;
+            if (currentMode === 'manual') {
+                userTerm = document.getElementById('userTerm').value.trim();
+            } else {
+                userTerm = extractedTerm;
+            }
+            
+            const rewardType = document.getElementById('rewardType').value;
+            
+            if (!userTerm) {
+                if (currentMode === 'link') {
+                    alert('Please extract term from link first');
+                } else {
+                    alert('Please enter your personal term');
+                }
+                return;
+            }
+            
+            if (!rewardType) {
+                alert('Please select a reward');
+                return;
+            }
+            
+            const reward = rewardData[rewardType];
+            if (!reward) {
+                alert('Invalid reward selected');
+                return;
+            }
+            
+            // Generate the new link
+            const generatedLink = `https://rewards.bing.com/redeem/${reward.code}/?form=${userTerm}`;
+            
+            // Update the display
+            document.getElementById('selectedReward').textContent = reward.name;
+            document.getElementById('rewardDescription').textContent = reward.description;
+            document.getElementById('generatedLink').textContent = generatedLink;
+            document.getElementById('newRewardDisplay').textContent = reward.name;
+            document.getElementById('yourTermDisplay').textContent = userTerm;
+            document.getElementById('statusDisplay').textContent = 'Link generated successfully';
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.add('show');
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        function copyLink() {
+            const linkText = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(linkText).then(function() {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy link. Please copy manually.');
+            });
+        }
+    </script>
+</body>
+</html>`

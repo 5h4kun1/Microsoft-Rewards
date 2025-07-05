@@ -12,9 +12,9 @@ Generate personalized Microsoft Rewards links with your custom terms - switch be
 - **Link Analysis**: Detailed breakdown of generated links
 - **Responsive Design**: Works seamlessly on all devices
 
-## 🚀 Demo
+## 🚀 Webpage
 
-![Custom Reward Link Generator](https://via.placeholder.com/800x400/667eea/ffffff?text=Custom+Reward+Link+Generator)
+![Custom Reward Link Generator](https://5h4kun1.github.io/Microsoft-Rewards/index.html)
 
 ## 🎯 How It Works
 

@@ -112,7 +112,7 @@ https://rewards.bing.com/redeem/[REWARD_CODE]/?form=[YOUR_TERM]
 - Test across different browsers
 - Ensure responsive design works on all devices
 - Add comments for complex functionality
-- Update README if adding new features
+- Update README.md if adding new features
 
 ## 📝 License
 
